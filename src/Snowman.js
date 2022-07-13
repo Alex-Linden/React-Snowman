@@ -11,7 +11,7 @@ import img6 from "./6.png";
 
 import { randomWord, ENGLISH_WORDS } from "./words";
 
-
+let won = "";
 /** Snowman game: plays hangman-style game with a melting snowman.
  *
  * Props:
@@ -31,18 +31,22 @@ function Snowman({
   maxWrong = 6,
 }) {
   /** by default, allow 6 guesses and use provided gallows images. */
-
+  const [nCorrect, setNCorrect] = useState(0);
   const [nWrong, setNWrong] = useState(0);
   const [guessedLetters, setGuessedLetters] = useState(() => new Set());
+  //could make bellow fun in useState a callback for first render
   const [answer, setAnswer] = useState(randomWord(words));
-
+  won = answer;
   /** guessedWord: show current-state of word:
    if guessed letters are {a,p,e}, show "app_e" for "apple"
    */
   function guessedWord() {
-    return answer
-      .split("")
-      .map(ltr => (guessedLetters.has(ltr) ? ltr : "_"));
+    let newStr = answer.split("").map((ltr) => (guessedLetters.has(ltr) ? ltr : "_"));
+    if(newStr.includes('_')){
+      return newStr
+    } else {
+      //set to you won!
+    }
   }
 
   /** handleGuess: handle a guessed letter:
@@ -52,18 +56,23 @@ function Snowman({
   function handleGuess(evt) {
     let ltr = evt.target.value;
 
-    setGuessedLetters(g => {
+    setGuessedLetters((g) => {
       const newGuessed = new Set(g);
       newGuessed.add(ltr);
       return newGuessed;
     });
 
-    setNWrong(n => n + (answer.includes(ltr) ? 0 : 1));
+    setNWrong((n) => n + (answer.includes(ltr) ? 0 : 1));
+    setNCorrect((n) => n + (answer.includes(ltr) ? 1 : 0));
+
+    if (answer.includes(ltr)) {
+      won.replace(ltr, "");
+    }
   }
 
   /** generateButtons: return array of letter buttons to render */
   function generateButtons() {
-    return "abcdefghijklmnopqrstuvwxyz".split("").map(ltr => (
+    return "abcdefghijklmnopqrstuvwxyz".split("").map((ltr) => (
       <button
         key={ltr}
         id={ltr}
@@ -77,22 +86,25 @@ function Snowman({
   }
 
   function resetGame() {
+    setNCorrect(0);
     setNWrong(0);
-    setAnswer(randomWord(words))
-    setGuessedLetters(() => new Set())
+    setAnswer(randomWord(words));
+    setGuessedLetters(() => new Set());
   }
-
+  console.log(answer.length, "answer length");
   return (
     <div className="Snowman">
-      <img src={(images)[nWrong]} alt={nWrong} />
+      <img src={images[nWrong]} alt={nWrong} />
       <p>Number Wrong: {nWrong}</p>
       <p className="Snowman-word">{guessedWord()}</p>
       {nWrong < maxWrong && <p>{generateButtons()}</p>}
-      {nWrong === maxWrong && <p id="lose">You Lose</p>}
-      <div><button onClick={resetGame}>Reset Button</button></div>
+      {nWrong === maxWrong && <p id="lose">YOU LOSE!!! Answer: {answer}</p>}
+      {won.length === 0 && <p id="win">YOU WIN!!!</p>}
+      <div>
+        <button onClick={resetGame}>Reset Button</button>
+      </div>
     </div>
   );
 }
-
 
 export default Snowman;
